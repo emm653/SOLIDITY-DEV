@@ -1,0 +1,44 @@
+pragma solidity ^0.8.4;
+// only creator can create new tokens
+//anyone can send tokens to each other
+contract token{
+    address public minter;
+    mapping (address=>uint) public balances;
+    //next we need an event
+    //an event is triggered to end users when a certain action is done
+    // this event is for token transfer
+    event sent(address from , address to , uint amount);
+
+    constructor(){
+        minter = msg.sender;
+    }
+
+    // lets create a function for minting
+    // this function makes new tokens and sends them to an address
+    // only the owner can send them to an address
+    function mint(address receiver, uint amount) public{
+        // 'require' is a conditional statement
+        require(msg.sender == minter);
+        balances[receiver] += amount;
+        // += is neccesary because we need to add prevoius balance to new amount
+        // if not then the address will keep on reverting to the latest amount
+
+    }
+    // lets create a function to send tokens to an existing address
+    error insufficientBalance(uint requested , uint available);
+    function send(address receiver , uint amount) public{
+        //require that the amount the greater than the current balance and then run it
+       // require(balances[msg.sender] > amount);
+        if (amount > balances[msg.sender]) {
+        revert insufficientBalance({
+            requested: amount , 
+            available: balances[msg.sender]
+        });
+        }
+        balances[msg.sender] -= amount;
+        balances[receiver] += amount;
+        emit sent(msg.sender , receiver , amount);
+    }
+
+
+} 
